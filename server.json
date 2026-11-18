@@ -1,0 +1,37 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.12happyhq/12happy-mcp",
+  "title": "12happy uptime monitoring",
+  "description": "Create uptime monitors, read incidents, uptime and response times, and silence alerts for deploys.",
+  "websiteUrl": "https://www.12hpy.com/",
+  "repository": {
+    "url": "https://github.com/12happyhq/12happy-mcp",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "12happy-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "TWELVEHAPPY_API_KEY",
+          "description": "API key from the API keys page of the 12happy console (Pro or Agency plan)",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "TWELVEHAPPY_ORG",
+          "description": "Client organization to act on by default (agencies)",
+          "isRequired": false,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}

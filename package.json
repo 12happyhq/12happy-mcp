@@ -1,0 +1,53 @@
+{
+  "name": "12happy-mcp",
+  "version": "0.1.0",
+  "mcpName": "io.github.12happyhq/12happy-mcp",
+  "description": "MCP server for 12happy uptime monitoring: create monitors, read uptime and incidents, and open maintenance windows from Claude, Cursor or any MCP client.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "uptime",
+    "uptime-monitoring",
+    "monitoring",
+    "status-page",
+    "incidents",
+    "12happy"
+  ],
+  "homepage": "https://www.12hpy.com/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/12happyhq/12happy-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/12happyhq/12happy-mcp/issues"
+  },
+  "license": "MIT",
+  "author": "12happy",
+  "type": "module",
+  "bin": {
+    "12happy-mcp": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc && chmod +x dist/index.js",
+    "dev": "tsc --watch",
+    "inspect": "npx @modelcontextprotocol/inspector node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.9.3"
+  }
+}
