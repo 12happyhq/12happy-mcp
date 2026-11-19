@@ -40,6 +40,7 @@
     "build": "tsc && chmod +x dist/index.js",
     "dev": "tsc --watch",
     "inspect": "npx @modelcontextprotocol/inspector node dist/index.js",
+    "test": "npm run build && node test/create-monitor.mjs",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {

@@ -7,6 +7,7 @@ Uptime monitoring you can talk to. This [Model Context Protocol](https://modelco
 - "Why did the checkout monitor fail last night, and from which regions?"
 - "What was our uptime and p95 response time for the API last month?"
 - "Silence alerts for 20 minutes while I deploy."
+- "Tell me if the nightly backup stops running."
 
 12happy checks from the US, Europe and Israel, and opens an incident only when a quorum of regions agrees that something is down, so one flaky probe doesn't page you.
 
@@ -74,7 +75,7 @@ Add this to `.vscode/mcp.json`. VS Code asks for the key once and stores it secu
 | `list_incidents` | Outages and slowdowns, with cause and confirming regions |
 | `list_alert_channels` | Email, Slack, webhook, SMS and other channels, and their health |
 | `list_regions` | Where checks can run from |
-| `create_monitor` | Watch a URL, keyword, hostname (ping, DNS, SSL certificate) or TCP port |
+| `create_monitor` | Watch a URL, keyword, hostname (ping, DNS, SSL certificate) or TCP port, or a cron job by heartbeat: it returns the URL the job calls when it finishes |
 | `update_monitor` | Change target, interval, regions, keyword, timeout or slow threshold |
 | `pause_monitor` | Pause or resume, keeping history |
 | `check_now` | Run a check immediately |

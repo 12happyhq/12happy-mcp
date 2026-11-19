@@ -11,9 +11,7 @@ import { ApiError, type TwelveHappyClient } from './client.js';
 
 type Json = Record<string, any>;
 
-// Heartbeat (cron) monitors are left out until the API evaluates missed beats;
-// see 12happy's audit/heartbeat-ssl-check-2026-11-18.md. Add 'heartbeat' back then.
-const CHECK_TYPES = ['http', 'keyword', 'tcp', 'ping', 'dns', 'ssl_cert'] as const;
+const CHECK_TYPES = ['http', 'keyword', 'tcp', 'ping', 'dns', 'ssl_cert', 'heartbeat'] as const;
 
 const orgParam = z
   .string()
@@ -265,9 +263,13 @@ export function registerTools(server: McpServer, api: TwelveHappyClient, default
     {
       title: 'Create a monitor',
       description:
-        'Start watching a website, API, server or certificate. Only the target is required; sensible defaults cover the rest, and the first check runs immediately. Use check_type keyword with keyword to require text on the page, ssl_cert or dns with a bare hostname, ping with a hostname or IP, and tcp with host:port.',
+        'Start watching a website, API, server or certificate. Only the target is required; sensible defaults cover the rest, and the first check runs immediately. Use check_type keyword with keyword to require text on the page, ssl_cert or dns with a bare hostname, ping with a hostname or IP, and tcp with host:port. ' +
+        'For a cron job, backup or script, use check_type heartbeat: no target is needed, interval_seconds is how often the job runs, and the answer has the URL the job must call each time it finishes. A beat that is later than the interval plus grace_period_seconds opens an incident.',
       inputSchema: {
-        target: z.string().describe('What to watch: a URL (https://example.com/health), a hostname, or host:port for TCP.'),
+        target: z
+          .string()
+          .optional()
+          .describe('What to watch: a URL (https://example.com/health), a hostname, or host:port for TCP. Required except for heartbeat.'),
         name: z.string().optional().describe('A display name. Defaults to the target.'),
         check_type: z.enum(CHECK_TYPES).optional().describe('Defaults to http for URLs.'),
         interval_seconds: z
@@ -276,10 +278,22 @@ export function registerTools(server: McpServer, api: TwelveHappyClient, default
           .min(10)
           .max(86400)
           .optional()
-          .describe("How often to check. The plan sets the minimum (Free 300, Pro 30, Agency 15). Defaults to the plan's default."),
+          .describe(
+            "How often to check. The plan sets the minimum (Free 300, Pro 30, Agency 15). Defaults to the plan's default. For heartbeat: how often the job runs.",
+          ),
+        grace_period_seconds: z
+          .number()
+          .int()
+          .min(30)
+          .max(86400)
+          .optional()
+          .describe('For heartbeat: how late a beat may be before it counts as missed. The API default applies when left out.'),
         keyword: z.string().optional().describe('For keyword checks: text that must appear in the response.'),
         keyword_absent: z.boolean().optional().describe('For keyword checks: alert when the keyword IS present instead.'),
-        regions: z.array(z.string()).optional().describe('Region codes from list_regions. Leave out for the default set.'),
+        regions: z
+          .array(z.string())
+          .optional()
+          .describe('Region codes from list_regions. Leave out for the default set. Not for heartbeat, which is called rather than checked.'),
         expected_status_codes: z.array(z.number().int()).optional().describe('HTTP codes that count as up (default [200]).'),
         alert_channel_ids: z
           .array(z.string())
@@ -290,10 +304,11 @@ export function registerTools(server: McpServer, api: TwelveHappyClient, default
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
     run(async (a: {
-      target: string;
+      target?: string;
       name?: string;
       check_type?: string;
       interval_seconds?: number;
+      grace_period_seconds?: number;
       keyword?: string;
       keyword_absent?: boolean;
       regions?: string[];
@@ -301,14 +316,22 @@ export function registerTools(server: McpServer, api: TwelveHappyClient, default
       alert_channel_ids?: string[];
       organization?: string;
     }) => {
-      const body: Json = { target: a.target };
+      const heartbeat = a.check_type === 'heartbeat';
+      if (!heartbeat && !a.target) {
+        throw new Error('target is required: a URL, hostname or host:port. Only check_type heartbeat goes without one.');
+      }
+
+      const body: Json = {};
+      if (a.target) body.target = a.target;
       if (a.name) body.name = a.name;
       if (a.check_type) body.check_type = a.check_type;
       else if (a.keyword) body.check_type = 'keyword';
       if (a.interval_seconds) body.interval_seconds = a.interval_seconds;
+      if (heartbeat && a.grace_period_seconds) body.grace_period_seconds = a.grace_period_seconds;
       if (a.keyword) body.keyword_match = a.keyword;
       if (a.keyword_absent !== undefined) body.keyword_absent = a.keyword_absent;
-      if (a.regions?.length) {
+      // A heartbeat is called by the job, not checked from anywhere.
+      if (a.regions?.length && !heartbeat) {
         body.region_mode = 'custom';
         body.regions = a.regions;
       }
@@ -327,15 +350,26 @@ export function registerTools(server: McpServer, api: TwelveHappyClient, default
         } catch (e) {
           notes.push(`The monitor was created, but routing alerts failed: ${e instanceof ApiError ? e.explain() : e}`);
         }
-      } else if (monitor.check_type !== 'heartbeat') {
+      } else {
         notes.push('No alert channel is routed yet, so nobody will be alerted. Use set_monitor_alerts to add one.');
       }
 
-      if (monitor.check_type !== 'heartbeat') {
-        // A new monitor reads "unknown" until its first check; ask for one now.
-        await api.post(`/monitors/${monitor.id}/check-now`).catch(() => undefined);
-        notes.push('The first check is running now; get_monitor shows the result in a few seconds.');
+      if (monitor.check_type === 'heartbeat') {
+        // Nothing to check now: it waits for the job's first call.
+        const url = monitor.heartbeat?.url;
+        if (url) {
+          notes.push(
+            `Have the job call ${url} each time it finishes, for example as the last line of the script: ` +
+              `curl -fsS -m 10 --retry 3 ${url} > /dev/null. ` +
+              'GET, HEAD and POST all count. Treat the URL like a password: anyone with it can send beats.',
+          );
+        }
+        return { monitor, heartbeat: url ? { url, curl: `curl -fsS -m 10 --retry 3 ${url}` } : null, notes };
       }
+
+      // A new monitor reads "unknown" until its first check; ask for one now.
+      await api.post(`/monitors/${monitor.id}/check-now`).catch(() => undefined);
+      notes.push('The first check is running now; get_monitor shows the result in a few seconds.');
       return { monitor, notes };
     }),
   );
