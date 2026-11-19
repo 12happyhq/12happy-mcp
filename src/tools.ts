@@ -196,9 +196,13 @@ export function registerTools(server: McpServer, api: TwelveHappyClient, default
     },
     run(async (a: { open_only?: boolean; monitor_id?: string; limit?: number; organization?: string }) => {
       const limit = a.limit ?? 20;
-      // Filtering happens here, so read further than the limit when a filter is set.
+      // The API filters by status and monitor_id; the same filter runs here too,
+      // so the answer stays right even if the server ignores a parameter.
+      const query = new URLSearchParams({ per_page: '100' });
+      if (a.open_only) query.set('status', 'open');
+      if (a.monitor_id) query.set('monitor_id', a.monitor_id);
       const rows = await api.all<Json>(
-        `/organizations/${org(a.organization)}/incidents?per_page=100`,
+        `/organizations/${org(a.organization)}/incidents?${query}`,
         a.open_only || a.monitor_id ? 500 : limit,
       );
       const incidents = rows
@@ -236,7 +240,6 @@ export function registerTools(server: McpServer, api: TwelveHappyClient, default
         id: c.id,
         name: c.name,
         channel_type: c.channel_type,
-        destination: c.destination,
         enabled: c.enabled,
         verified: c.verified,
         health: c.health,

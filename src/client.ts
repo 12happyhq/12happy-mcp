@@ -6,7 +6,11 @@
  */
 
 export const DEFAULT_BASE_URL = 'https://be.12hpy.com/v1';
-const USER_AGENT = '12happy-mcp/0.1.0';
+import { createRequire } from 'node:module';
+
+/** The package version, read from package.json so it is defined in one place. */
+export const VERSION: string = createRequire(import.meta.url)('../package.json').version;
+const USER_AGENT = `12happy-mcp/${VERSION}`;
 
 export class ApiError extends Error {
   constructor(
@@ -56,6 +60,11 @@ export class TwelveHappyClient {
 
   async request<T>(method: string, path: string, body?: unknown): Promise<T> {
     const url = path.startsWith('http') ? path : `${this.baseUrl}${path}`;
+    // The key goes only to the configured API. A pagination link (or anything
+    // else) pointing at another host is refused rather than sent the key.
+    if (url !== this.baseUrl && !url.startsWith(`${this.baseUrl}/`) && !url.startsWith(`${this.baseUrl}?`)) {
+      throw new Error(`Refusing to send the API key to ${new URL(url).origin}, which is not the configured 12happy API.`);
+    }
     const res = await fetch(url, {
       method,
       headers: {

@@ -8,7 +8,7 @@
  */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { DEFAULT_BASE_URL, TwelveHappyClient } from './client.js';
+import { DEFAULT_BASE_URL, TwelveHappyClient, VERSION } from './client.js';
 import { registerTools } from './tools.js';
 
 const apiKey = process.env.TWELVEHAPPY_API_KEY?.trim();
@@ -21,7 +21,7 @@ if (!apiKey) {
 }
 
 const server = new McpServer(
-  { name: '12happy', title: '12happy uptime monitoring', version: '0.1.0', websiteUrl: 'https://www.12hpy.com/' },
+  { name: '12happy', title: '12happy uptime monitoring', version: VERSION, websiteUrl: 'https://www.12hpy.com/' },
   {
     instructions:
       '12happy checks websites, APIs, servers, DNS and SSL certificates from several regions and opens an incident only when ' +
