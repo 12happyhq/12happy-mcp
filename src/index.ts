@@ -15,13 +15,13 @@ const apiKey = process.env.TWELVEHAPPY_API_KEY?.trim();
 if (!apiKey) {
   console.error(
     '12happy-mcp: set TWELVEHAPPY_API_KEY to a key from the API keys page of the 12happy console (app.12hpy.com). ' +
-      'API access is included on the Pro and Agency plans.',
+      'Every plan includes API access: one key on Free, as many as you need on Pro and Agency.',
   );
   process.exit(1);
 }
 
 const server = new McpServer(
-  { name: '12happy', title: '12happy uptime monitoring', version: VERSION, websiteUrl: 'https://www.12hpy.com/' },
+  { name: '12happy', title: '12happy uptime monitoring', version: VERSION, websiteUrl: 'https://www.12hpy.com/mcp' },
   {
     instructions:
       '12happy checks websites, APIs, servers, DNS and SSL certificates from several regions and opens an incident only when ' +

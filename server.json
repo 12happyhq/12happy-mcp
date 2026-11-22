@@ -3,24 +3,24 @@
   "name": "io.github.12happyhq/12happy-mcp",
   "title": "12happy uptime monitoring",
   "description": "Create uptime monitors, read incidents, uptime and response times, and silence alerts for deploys.",
-  "websiteUrl": "https://www.12hpy.com/",
+  "websiteUrl": "https://www.12hpy.com/mcp",
   "repository": {
     "url": "https://github.com/12happyhq/12happy-mcp",
     "source": "github"
   },
-  "version": "0.1.1",
+  "version": "0.1.2",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "12happy-mcp",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "transport": {
         "type": "stdio"
       },
       "environmentVariables": [
         {
           "name": "TWELVEHAPPY_API_KEY",
-          "description": "API key from the API keys page of the 12happy console (Pro or Agency plan)",
+          "description": "API key from the API keys page of the 12happy console (every plan; one key on Free)",
           "isRequired": true,
           "isSecret": true,
           "format": "string"

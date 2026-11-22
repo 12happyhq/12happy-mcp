@@ -13,7 +13,7 @@ Uptime monitoring you can talk to. This [Model Context Protocol](https://modelco
 
 ## What you need
 
-- A 12happy account on the **Pro or Agency plan**, which include API access. [Start free](https://app.12hpy.com/), then upgrade from the console.
+- A 12happy account. Every plan includes API access: one key on Free, as many as you need on Pro and Agency. [Start free](https://app.12hpy.com/).
 - An **API key**: in the [console](https://app.12hpy.com/), open **API keys** and choose **Create key**. Pick the scopes the assistant should have. A key with only the read scopes can't change anything.
 - Node.js 20 or later.
 
