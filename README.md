@@ -1,5 +1,7 @@
 # 12happy MCP server
 
+[![12happyhq/12happy-mcp MCP server](https://glama.ai/mcp/servers/12happyhq/12happy-mcp/badges/score.svg)](https://glama.ai/mcp/servers/12happyhq/12happy-mcp)
+
 Uptime monitoring you can talk to. This [Model Context Protocol](https://modelcontextprotocol.io) server connects [12happy](https://www.12hpy.com/) to Claude, Cursor, VS Code and any other MCP client, so you can ask:
 
 - "Is anything down right now?"
